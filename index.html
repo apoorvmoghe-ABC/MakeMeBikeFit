@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B1120">
+<title>Bike Fit Expert</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚴</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;height:100%;-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:#0B1120;color:#F0F4FF;min-height:100%;min-height:100dvh;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+:root{
+  --green:#1DB87A;--green-dim:#0F6E56;--green-glow:rgba(29,184,122,0.18);--green-soft:rgba(29,184,122,0.10);
+  --amber:#F59E0B;--amber-soft:rgba(245,158,11,0.12);
+  --red:#EF4444;--red-soft:rgba(239,68,68,0.10);
+  --blue:#3B82F6;--blue-soft:rgba(59,130,246,0.10);
+  --purple:#A78BFA;--purple-soft:rgba(167,139,250,0.10);
+  --surface:#131B2E;--surface2:#1A2540;--surface3:#212E4A;
+  --border:rgba(255,255,255,0.08);
+  --text1:#F0F4FF;--text2:#8A9BBC;--text3:#5A6A84;
+  --radius:14px;--radius-sm:10px;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+.app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+.app-header{padding:calc(var(--safe-top) + 16px) 20px 16px;background:linear-gradient(180deg,#0B1120 60%,transparent);position:sticky;top:0;z-index:50}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.app-logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.app-name{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text1)}
+.app-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.step-label{font-size:12px;color:var(--text3);font-weight:500}
+.progress-bar{display:flex;gap:5px;padding:10px 20px 0}
+.progress-seg{flex:1;height:3px;border-radius:99px;background:var(--surface3);transition:background 0.4s ease}
+.progress-seg.done{background:var(--green-dim)}
+.progress-seg.active{background:var(--green)}
+.content{flex:1;padding:20px 16px calc(var(--safe-bottom) + 100px);overflow-y:auto}
+.section{display:none}
+.section.visible{display:block}
+.section-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.card-title svg{width:15px;height:15px;opacity:0.7;flex-shrink:0}
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.field input,.field select{
+  width:100%;padding:13px 14px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text1);font-size:16px;font-family:inherit;
+  -webkit-appearance:none;appearance:none;transition:border-color 0.2s;
+}
+.field input::placeholder{color:var(--text3)}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235A6A84' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.field input.detected,.field select.detected{border-color:var(--green);background:var(--green-soft)}
+.detected-badge{
+  font-size:10px;font-weight:700;color:var(--green);background:var(--green-soft);
+  padding:2px 7px;border-radius:99px;letter-spacing:0.02em;display:inline-flex;align-items:center;gap:3px;
+}
+.hint-btn{background:none;border:none;cursor:pointer;width:22px;height:22px;border-radius:50%;background:var(--green-soft);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s}
+.hint-btn:active{background:var(--green-glow)}
+.hint-btn svg{width:13px;height:13px;color:var(--green)}
+.hint-panel{display:none;margin-top:8px;background:rgba(29,184,122,0.07);border-left:3px solid var(--green-dim);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 14px}
+.hint-panel.open{display:block}
+.hint-title{font-size:12px;font-weight:600;color:var(--green);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.hint-steps{list-style:none;padding:0;counter-reset:steps}
+.hint-steps li{counter-increment:steps;font-size:12px;color:#7DCFB0;line-height:1.55;padding:3px 0 3px 22px;position:relative}
+.hint-steps li::before{content:counter(steps);position:absolute;left:0;font-size:10px;font-weight:700;color:var(--green);background:var(--green-soft);width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;top:4px}
+.hint-tip{font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);font-style:italic;line-height:1.5}
+.posture-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.posture-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px;cursor:pointer;text-align:center;transition:all 0.2s;-webkit-user-select:none;user-select:none}
+.posture-card:active{transform:scale(0.96)}
+.posture-card.selected{border-color:var(--green);background:var(--green-soft);box-shadow:0 0 0 1px var(--green)}
+.p-icon{font-size:22px;margin-bottom:5px}
+.p-label{font-size:12px;font-weight:600;color:var(--text1);line-height:1.2}
+.p-sub{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.3}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:12px 16px calc(var(--safe-bottom) + 12px);background:linear-gradient(0deg,#0B1120 70%,transparent);display:flex;gap:10px;z-index:50}
+.btn-back{flex:0 0 auto;padding:0 20px;height:52px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;font-family:inherit}
+.btn-back:active{background:var(--surface3)}
+.btn-next{flex:1;height:52px;background:var(--green);border:none;border-radius:var(--radius);color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;font-family:inherit;letter-spacing:-0.2px}
+.btn-next:active{background:var(--green-dim);transform:scale(0.98)}
+.btn-next:disabled{opacity:0.4}
+.btn-next.secondary{background:var(--surface2);color:var(--text1);border:1px solid var(--border)}
+.score-ring-wrap{text-align:center;padding:24px 0 8px}
+.score-ring-wrap svg{overflow:visible}
+.score-label{font-size:13px;color:var(--text2);margin-top:8px;letter-spacing:0.02em}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.stat-box-label{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.stat-box-val{font-size:22px;font-weight:700;color:var(--green);letter-spacing:-0.5px}
+.stat-box-unit{font-size:13px;font-weight:400;color:var(--text2);margin-left:2px}
+.rec-row{border-left:3px solid var(--green);padding:11px 13px;background:var(--green-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:8px}
+.rec-row.warn{border-color:var(--amber);background:var(--amber-soft)}
+.rec-row.bad{border-color:var(--red);background:var(--red-soft)}
+.rec-row.info{border-color:var(--blue);background:var(--blue-soft)}
+.rec-title{font-size:13px;font-weight:600;color:var(--text1);margin-bottom:2px}
+.rec-val{font-size:18px;font-weight:700;color:var(--green);margin:3px 0}
+.rec-row.warn .rec-val{color:var(--amber)}
+.rec-row.info .rec-val{color:var(--blue)}
+.rec-note{font-size:12px;color:var(--text2);line-height:1.5}
+.res-section{margin-bottom:20px}
+.res-section-title{font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.ai-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.ai-header{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--text1);margin-bottom:12px}
+.ai-header-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ai-body{font-size:14px;color:var(--text2);line-height:1.75;white-space:pre-wrap}
+.dots-anim span{animation:blink 1.4s infinite;opacity:0}
+.dots-anim span:nth-child(2){animation-delay:.15s}
+.dots-anim span:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+.btn-followup{width:100%;padding:14px;margin-top:4px;background:transparent;border:1px solid var(--green);border-radius:var(--radius-sm);color:var(--green);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:none;transition:all 0.2s}
+.btn-followup:active{background:var(--green-soft)}
+.welcome{display:flex;flex-direction:column;align-items:center;padding:40px 24px 24px;text-align:center}
+.welcome-badge{width:80px;height:80px;background:var(--green);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:24px;box-shadow:0 0 40px rgba(29,184,122,0.35)}
+.welcome h1{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text1);margin-bottom:10px;line-height:1.2}
+.welcome h1 span{color:var(--green)}
+.welcome p{font-size:15px;color:var(--text2);line-height:1.6;max-width:300px}
+.feature-list{width:100%;margin:28px 0;display:flex;flex-direction:column;gap:10px}
+.feature-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;text-align:left}
+.feature-icon{font-size:20px;flex-shrink:0}
+.feature-text{font-size:13px;color:var(--text2);line-height:1.4}
+.feature-text strong{color:var(--text1);display:block;font-size:14px;margin-bottom:1px}
+.btn-start{width:100%;padding:16px;background:var(--green);border:none;border-radius:var(--radius);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:-0.3px;transition:all 0.2s}
+.btn-start:active{background:var(--green-dim)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+::-webkit-scrollbar{width:0}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.slide-in{animation:slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Photo upload */
+.upload-zone{
+  border:2px dashed var(--border);border-radius:var(--radius);
+  padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s;
+  background:var(--surface2);position:relative;overflow:hidden;
+}
+.upload-zone:active{background:var(--surface3)}
+.upload-zone.has-image{border-style:solid;border-color:var(--green);padding:0}
+.upload-icon{font-size:32px;margin-bottom:10px}
+.upload-title{font-size:14px;font-weight:600;color:var(--text1);margin-bottom:4px}
+.upload-sub{font-size:12px;color:var(--text3)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.preview-wrap{position:relative}
+.preview-img{width:100%;display:block;max-height:340px;object-fit:cover;border-radius:calc(var(--radius) - 2px)}
+.preview-remove{
+  position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;
+  background:rgba(11,17,32,0.85);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;z-index:2;
+}
+.preview-badge{
+  position:absolute;bottom:8px;left:8px;background:rgba(11,17,32,0.85);
+  color:var(--green);font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;
+  display:flex;align-items:center;gap:5px;
+}
+.photo-tips{margin-top:10px}
+.analyze-btn{
+  width:100%;padding:15px;margin-top:14px;background:var(--purple);border:none;
+  border-radius:var(--radius-sm);color:#1a0f38;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all 0.2s;
+}
+.analyze-btn:active{transform:scale(0.98)}
+.analyze-btn:disabled{opacity:0.4}
+.analyzing-state{
+  display:flex;align-items:center;gap:10px;padding:14px;background:var(--purple-soft);
+  border-radius:var(--radius-sm);margin-top:12px;
+}
+.spinner{
+  width:18px;height:18px;border:2.5px solid rgba(167,139,250,0.25);border-top-color:var(--purple);
+  border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analyzing-text{font-size:13px;color:#C4B5FD;font-weight:500}
+.detected-card{
+  background:var(--purple-soft);border:1px solid rgba(167,139,250,0.3);
+  border-radius:var(--radius);padding:14px;margin-top:12px;
+}
+.detected-header{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--purple);margin-bottom:10px}
+.detected-grid{display:flex;flex-direction:column;gap:8px}
+.detected-item{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.detected-item .dl{color:var(--text2)}
+.detected-item .dv{color:var(--text1);font-weight:600}
+.confidence-note{
+  font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.06);line-height:1.5;font-style:italic;
+}
+.skip-link{
+  text-align:center;font-size:13px;color:var(--text3);margin-top:14px;
+  text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;width:100%;padding:6px;
+}
+.angle-diagram{display:flex;justify-content:center;padding:8px 0 4px}
+.priority-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800;
+  background:var(--green);color:#04342C;flex-shrink:0;margin-right:8px;
+}
+.priority-badge.p2{background:var(--amber);color:#412402}
+.priority-badge.p3{background:var(--text3);color:#0B1120}
+.action-item{display:flex;align-items:flex-start;gap:0;padding:10px 0;border-bottom:1px solid var(--border)}
+.action-item:last-child{border-bottom:none}
+.action-text{font-size:13px;color:var(--text1);line-height:1.5;flex:1}
+.action-text b{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<h2 class="sr-only">Bike fit expert app — upload a photo of yourself on your bike for automatic AI analysis, or enter measurements manually, then receive a detailed professional bike fit report.</h2>
+
+<!-- ═══ WELCOME ═══ -->
+<div class="section visible" id="sec0">
+  <div class="content" style="padding-top:32px">
+    <div class="welcome">
+      <div class="welcome-badge">🚴</div>
+      <h1>Your personal<br><span>Bike Fit Expert</span></h1>
+      <p>Snap a photo of yourself on your bike — AI reads your posture and setup automatically. Or enter details manually.</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">📸</div>
+          <div class="feature-text"><strong>Photo auto-analysis</strong>Upload a riding photo — AI detects posture, bike type, and estimates body proportions.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📐</div>
+          <div class="feature-text"><strong>How-to-measure guides</strong>Tap the <b style="color:var(--green)">ⓘ</b> next to any field for a step-by-step reckoner.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔬</div>
+          <div class="feature-text"><strong>In-depth biomechanics</strong>Joint angles, KOPS, saddle tilt, cleat position, and a prioritised action plan.</div>
+        </div>
+      </div>
+      <button class="btn-start" onclick="goTo(1)">Start fit analysis →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 1: Photo ═══ -->
+<div class="section" id="sec1">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-logo"><div class="logo-icon">🚴</div><div><div class="app-name">Bike Fit Expert</div><div class="app-sub">Professional fit analysis</div></div></div>
+      <div class="step-label">Step 1 of 4</div>
+    </div>
+    <div class="progress-bar"><div class="progress-seg active"></div><div class="progress-seg"></div><div class="progress-seg"></div><div class="progress-seg"></div></div>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Photo analysis (recommended)</div>
+
+    <div class="card slide-in">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>
+        Side-view riding photo
+      </div>
+      <div class="upload-zone" id="uploadZone1" onclick="document.getElementById('fileInput1').click()">
+        <div id="uploadPlaceholder1">
+          <div class="upload-icon">📷</div>
+          <div class="upload-title">Tap to upload or take a photo</div>
+          <div class="upload-sub">Straight side view, full bike + rider visible</div>
+        </div>
+        <div id="previewWrap1" style="display:none"></div>
+        <input type="file" id="fileInput1" accept="image/*" capture="environment" onchange="handleFile(event,1)">
+      </div>
+
+      <div class="photo-tips">
+        <button class="hint-btn" style="width:auto;padding:6px 10px;border-radius:8px;display:inline-flex;gap:6px;align-items:center" onclick="tog('h-photo')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span style="font-size:12px;color:var(--green);font-weight:600">How to take a good fit photo</span>
+        </button>
+        <div class="hint-panel" id="h-photo">
+          <div class="hint-title">📸 Getting an analysable photo</div>
+          <ol class="hint-steps">
+            <li>Set the bike on a trainer, rollers, or have a friend hold it upright</li>
+            <li>Camera positioned exactly 90° to the side, level with the bike's centre, 3–4 m back</li>
+            <li>Pedal at the 3 o'clock crank position (forward crank arm horizontal) if possible</li>
+            <li>Full bike and rider must be visible in frame — wheels to helmet</li>
+            <li>Wear fitted clothing so joint lines are visible</li>
+            <li>Good even lighting, no strong shadows</li>
+          </ol>
+          <div class="hint-tip">💡 The camera should be roughly hip height and completely level — a tilted phone will skew every angle estimate.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M8 6l4-4 4 4M8 18l4 4 4-4"/></svg>
+        Your height (for scale reference)
+      </div>
+      <div class="field">
+        <label>Height (cm) — helps AI estimate body proportions from the photo</label>
+        <input type="number" id="height" inputmode="numeric" placeholder="e.g. 175" min="140" max="220">
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyzePhoto()" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5z"/></svg>
+      Analyse my photo
+    </button>
+
+    <div class="analyzing-state" id="analyzingState" style="display:none">
+      <div class="spinner"></div>
+      <div class="analyzing-text" id="analyzingText">Reading posture and bike setup...</div>
+    </div>
+
+    <div class="detected-card" id="detectedCard" style="display:none">
+      <div class="detected-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5z"/></svg>
+        AI detected from your photo
+      </div>
+      <div class="detected-grid" id="detectedGrid"></div>
+      <div class="confidence-note" id="confidenceNote"></div>
+    </div>
+
+    <button class="skip-link" onclick="goTo(2)">Skip photo — I'll enter details manually →</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="btn-back" onclick="goTo(0)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="btn-next" onclick="goTo(2)">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══ STEP 2: Body ═══ -->
+<div class="section" id="sec2">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-logo"><div class="logo-icon">🚴</div><div><div class="app-name">Bike Fit Expert</div><div class="app-sub">Professional fit analysis</div></div></div>
+      <div class="step-label">Step 2 of 4</div>
+    </div>
+    <div class="progress-bar"><div class="progress-seg done"></div><div class="progress-seg active"></div><div class="progress-seg"></div><div class="progress-seg"></div></div>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Body measurements</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px" id="bodyPrefillNote"></p>
+
+    <div class="card slide-in">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M8 6l4-4 4 4M8 18l4 4 4-4"/></svg>
+        Core dimensions
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Height (cm) <button class="hint-btn" onclick="tog('h-height')" aria-label="How to measure height"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="height2" inputmode="numeric" placeholder="e.g. 175" min="140" max="220">
+          <div class="hint-panel" id="h-height">
+            <div class="hint-title">📏 How to measure height</div>
+            <ol class="hint-steps">
+              <li>Stand barefoot on a hard floor, heels and back against a wall</li>
+              <li>Look straight ahead, chin parallel to the floor</li>
+              <li>Rest a flat book on your head, spine pressed to wall</li>
+              <li>Mark the wall at the book's lower edge</li>
+              <li>Measure from floor to the mark in centimetres</li>
+            </ol>
+            <div class="hint-tip">💡 Measure in the morning — you can be 1–2 cm taller before your spine compresses.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Weight (kg) <button class="hint-btn" onclick="tog('h-weight')" aria-label="How to measure weight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="weight" inputmode="numeric" placeholder="e.g. 70" min="40" max="150">
+          <div class="hint-panel" id="h-weight">
+            <div class="hint-title">⚖️ How to measure weight</div>
+            <ol class="hint-steps">
+              <li>Use a digital scale on a firm, flat floor</li>
+              <li>Weigh first thing in the morning, after the bathroom</li>
+              <li>Wear minimal clothing</li>
+            </ol>
+            <div class="hint-tip">💡 Rider weight affects saddle pressure and centre of gravity calculations.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Leg length (inseam) — most critical
+      </div>
+      <div class="field">
+        <label>Inseam length (cm) <button class="hint-btn" onclick="tog('h-inseam')" aria-label="How to measure inseam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+        <input type="number" id="inseam" inputmode="numeric" placeholder="e.g. 82" min="60" max="110">
+        <div class="hint-panel" id="h-inseam">
+          <div class="hint-title">📐 How to measure inseam</div>
+          <ol class="hint-steps">
+            <li>Stand barefoot on hard floor, feet 15–20 cm apart</li>
+            <li>Place a hardcover book between your legs, spine facing up</li>
+            <li>Press the book firmly upward into your crotch (simulate sitting on a saddle)</li>
+            <li>While a friend holds the book level, mark the wall at the top of the spine</li>
+            <li>Measure from floor to mark in centimetres</li>
+          </ol>
+          <div class="hint-tip">💡 The single most important measurement for saddle height. Repeat 2–3 times and average.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 12h10M12 7l5 5-5 5"/></svg>
+        Reach measurements
+      </div>
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field">
+          <label>Arm length (cm) <button class="hint-btn" onclick="tog('h-arm')" aria-label="How to measure arm length"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="arm" inputmode="numeric" placeholder="e.g. 60" min="50" max="90">
+          <div class="hint-panel" id="h-arm">
+            <div class="hint-title">💪 How to measure arm length</div>
+            <ol class="hint-steps">
+              <li>Stand upright, arms relaxed at your sides</li>
+              <li>Find your acromion — the bony bump at the top of your shoulder</li>
+              <li>Measure from the acromion straight down to the centre of your wrist crease</li>
+              <li>Keep arm straight but not locked</li>
+            </ol>
+            <div class="hint-tip">💡 Measure both arms and use the longer one.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Torso (cm) <button class="hint-btn" onclick="tog('h-torso')" aria-label="How to measure torso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="torso" inputmode="numeric" placeholder="e.g. 55" min="40" max="80">
+          <div class="hint-panel" id="h-torso">
+            <div class="hint-title">🧍 How to measure torso length</div>
+            <ol class="hint-steps">
+              <li>Sit upright on a hard chair, back straight and tall</li>
+              <li>Tilt your head forward — feel for C7 vertebra at the base of your neck</li>
+              <li>Measure from C7 straight down to the seat surface</li>
+            </ol>
+            <div class="hint-tip">💡 Drives handlebar reach and stem length calculations.</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Flexibility level <button class="hint-btn" onclick="tog('h-flex')" aria-label="How to assess flexibility"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+        <select id="flex">
+          <option value="">Select your flexibility...</option>
+          <option value="poor">Poor — can't reach below knees</option>
+          <option value="average">Average — fingertips to shins</option>
+          <option value="good">Good — fingertips to floor</option>
+          <option value="excellent">Excellent — palms flat on floor</option>
+        </select>
+        <div class="hint-panel" id="h-flex">
+          <div class="hint-title">🤸 How to assess flexibility</div>
+          <ol class="hint-steps">
+            <li>Stand barefoot, feet together, legs completely straight</li>
+            <li>Slowly bend forward, reach down as far as comfortable</li>
+            <li>Note where your fingertips reach</li>
+          </ol>
+          <div class="hint-tip">💡 Poor hip flexor flexibility is the most common cause of lower back pain on the bike.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm0-7v2m0-10v6"/></svg>
+        Rider history
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Pain / discomfort <button class="hint-btn" onclick="tog('h-pain')" aria-label="Pain zone guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <select id="pain">
+            <option value="none">No pain / discomfort</option>
+            <option value="knee">Knee pain</option>
+            <option value="lower_back">Lower back pain</option>
+            <option value="neck">Neck / shoulder pain</option>
+            <option value="hip">Hip pain</option>
+            <option value="wrist">Wrist / hand pain</option>
+            <option value="foot">Foot / ankle pain</option>
+            <option value="saddle_sore">Saddle sores / numbness</option>
+          </select>
+          <div class="hint-panel" id="h-pain">
+            <div class="hint-title">🔍 Common pain → cause patterns</div>
+            <ol class="hint-steps">
+              <li>Front knee → saddle too low or too far forward</li>
+              <li>Rear knee → saddle too high</li>
+              <li>Lower back → excessive reach or tight hamstrings</li>
+              <li>Neck/shoulder → too much weight on hands</li>
+              <li>Wrist → over-extended reach, no elbow bend</li>
+              <li>Foot/heel → cleat misaligned, saddle too high</li>
+              <li>Numbness → saddle too high or nose angled up</li>
+            </ol>
+          </div>
+        </div>
+        <div class="field">
+          <label>Experience level</label>
+          <select id="exp">
+            <option value="">Select...</option>
+            <option value="beginner">Beginner (0–1 yr)</option>
+            <option value="intermediate">Intermediate (1–5 yr)</option>
+            <option value="advanced">Advanced (5+ yr)</option>
+            <option value="racer">Competitive racer</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="btn-back" onclick="goTo(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <button class="btn-next" onclick="goTo(3)">Bike details →</button>
+  </div>
+</div>
+
+<!-- ═══ STEP 3: Bike ═══ -->
+<div class="section" id="sec3">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-logo"><div class="logo-icon">🚴</div><div><div class="app-name">Bike Fit Expert</div><div class="app-sub">Professional fit analysis</div></div></div>
+      <div class="step-label">Step 3 of 4</div>
+    </div>
+    <div class="progress-bar"><div class="progress-seg done"></div><div class="progress-seg done"></div><div class="progress-seg active"></div><div class="progress-seg"></div></div>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Bike details</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px" id="bikePrefillNote"></p>
+
+    <div class="card slide-in">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+        Bike setup
+      </div>
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field">
+          <label>Bike type</label>
+          <select id="bikeType">
+            <option value="">Select type...</option>
+            <option value="road">Road bike</option>
+            <option value="mtb">Mountain bike</option>
+            <option value="gravel">Gravel / adventure</option>
+            <option value="tt">Time trial / triathlon</option>
+            <option value="hybrid">Hybrid / commuter</option>
+            <option value="track">Track / fixed gear</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Brand / model</label>
+          <input type="text" id="bikeModel" placeholder="e.g. Trek Domane">
+        </div>
+      </div>
+      <div class="field">
+        <label>Frame size <button class="hint-btn" onclick="tog('h-frame')" aria-label="How to find frame size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+        <input type="text" id="frameSize" placeholder="e.g. 56 cm or L">
+        <div class="hint-panel" id="h-frame">
+          <div class="hint-title">🚲 Finding your frame size</div>
+          <ol class="hint-steps">
+            <li>Check the sticker/engraving on the seat tube</li>
+            <li>Road: usually in cm (52, 54, 56, 58)</li>
+            <li>MTB/hybrid: usually XS/S/M/L/XL</li>
+            <li>If unknown, measure BB centre to top of seat tube</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Components
+      </div>
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field">
+          <label>Wheel size <button class="hint-btn" onclick="tog('h-wheel')" aria-label="How to find wheel size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <select id="wheelSize">
+            <option value="">Select...</option>
+            <option value="700c">700c (road)</option>
+            <option value="29">29" (MTB)</option>
+            <option value="27.5">27.5" (MTB)</option>
+            <option value="26">26" (MTB)</option>
+            <option value="650b">650b (gravel)</option>
+          </select>
+          <div class="hint-panel" id="h-wheel">
+            <div class="hint-title">🔍 Finding your wheel size</div>
+            <ol class="hint-steps">
+              <li>Look at the sidewall of either tyre</li>
+              <li>Size is printed there — e.g. 700×25c or 29×2.2</li>
+              <li>Road: almost always 700c</li>
+            </ol>
+          </div>
+        </div>
+        <div class="field">
+          <label>Crank length (mm) <button class="hint-btn" onclick="tog('h-crank')" aria-label="How to measure crank length"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="crank" inputmode="decimal" placeholder="e.g. 172.5">
+          <div class="hint-panel" id="h-crank">
+            <div class="hint-title">🔩 Finding crank length</div>
+            <ol class="hint-steps">
+              <li>Look at the back face of either crank arm</li>
+              <li>Length is stamped there (170, 172.5, 175)</li>
+              <li>If unclear: measure BB centre to pedal hole centre</li>
+            </ol>
+            <div class="hint-tip">💡 Riders under 168 cm often benefit from 165–170 mm cranks.</div>
+          </div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Saddle type <button class="hint-btn" onclick="tog('h-saddle')" aria-label="Saddle type guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <select id="saddleType">
+            <option value="">Select...</option>
+            <option value="flat">Flat / performance</option>
+            <option value="padded">Padded / comfort</option>
+            <option value="cutout">Cut-out / relief</option>
+            <option value="noseless">Noseless / ISM</option>
+          </select>
+          <div class="hint-panel" id="h-saddle">
+            <div class="hint-title">🪑 Identifying saddle type</div>
+            <ol class="hint-steps">
+              <li>Flat: minimal padding, narrow, slight curve</li>
+              <li>Padded: thick foam/gel, wider</li>
+              <li>Cut-out: central hole/channel</li>
+              <li>Noseless/ISM: very short or no nose</li>
+            </ol>
+          </div>
+        </div>
+        <div class="field">
+          <label>Handlebar type <button class="hint-btn" onclick="tog('h-bar')" aria-label="Handlebar type guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <select id="handlebar">
+            <option value="">Select...</option>
+            <option value="drop">Drop bar (road)</option>
+            <option value="flat">Flat bar</option>
+            <option value="riser">Riser bar (MTB)</option>
+            <option value="bullhorn">Bullhorn / pursuit</option>
+            <option value="aero">Aero / TT extensions</option>
+          </select>
+          <div class="hint-panel" id="h-bar">
+            <div class="hint-title">🏁 Handlebar types</div>
+            <ol class="hint-steps">
+              <li>Drop: curves downward — road/gravel</li>
+              <li>Flat: straight bar — hybrid/MTB</li>
+              <li>Riser: angles up toward rider</li>
+              <li>Bullhorn: forward extensions</li>
+              <li>Aero/TT: elbow pads + extensions</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="btn-back" onclick="goTo(2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <button class="btn-next" onclick="goTo(4)">Posture →</button>
+  </div>
+</div>
+
+<!-- ═══ STEP 4: Posture ═══ -->
+<div class="section" id="sec4">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-logo"><div class="logo-icon">🚴</div><div><div class="app-name">Bike Fit Expert</div><div class="app-sub">Professional fit analysis</div></div></div>
+      <div class="step-label">Step 4 of 4</div>
+    </div>
+    <div class="progress-bar"><div class="progress-seg done"></div><div class="progress-seg done"></div><div class="progress-seg done"></div><div class="progress-seg active"></div></div>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Riding posture &amp; current setup</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px" id="posturePrefillNote"></p>
+
+    <div class="card slide-in">
+      <div class="card-title">How do you currently sit on the bike?</div>
+      <div class="posture-grid" id="postureGrid">
+        <div class="posture-card" onclick="selPost('aggressive')" data-pos="aggressive"><div class="p-icon">⬇️</div><div class="p-label">Aggressive</div><div class="p-sub">Low, stretched forward</div></div>
+        <div class="posture-card" onclick="selPost('neutral')" data-pos="neutral"><div class="p-icon">➡️</div><div class="p-label">Neutral</div><div class="p-sub">Slight forward lean</div></div>
+        <div class="posture-card" onclick="selPost('upright')" data-pos="upright"><div class="p-icon">⬆️</div><div class="p-label">Upright</div><div class="p-sub">Back nearly vertical</div></div>
+        <div class="posture-card" onclick="selPost('cramped')" data-pos="cramped"><div class="p-icon">🤏</div><div class="p-label">Cramped</div><div class="p-sub">Too short / close</div></div>
+        <div class="posture-card" onclick="selPost('stretched')" data-pos="stretched"><div class="p-icon">↔️</div><div class="p-label">Stretched</div><div class="p-sub">Reaching for bars</div></div>
+        <div class="posture-card" onclick="selPost('unknown')" data-pos="unknown"><div class="p-icon">🤷</div><div class="p-label">Not sure</div><div class="p-sub">Need assessment</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        Current setup (optional — improves accuracy)
+      </div>
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field">
+          <label>Saddle height (mm) <button class="hint-btn" onclick="tog('h-saddleH')" aria-label="How to measure saddle height"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="saddleH" inputmode="numeric" placeholder="e.g. 715 mm">
+          <div class="hint-panel" id="h-saddleH">
+            <div class="hint-title">📏 Measuring saddle height</div>
+            <ol class="hint-steps">
+              <li>Bike on trainer or leaned upright on level ground</li>
+              <li>Find bottom bracket centre (axle in middle of cranks)</li>
+              <li>Measure straight up to saddle top, along seat tube line</li>
+            </ol>
+          </div>
+        </div>
+        <div class="field">
+          <label>Saddle setback (mm) <button class="hint-btn" onclick="tog('h-setback')" aria-label="How to measure saddle setback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+          <input type="number" id="saddleSetback" inputmode="numeric" placeholder="e.g. 30 mm">
+          <div class="hint-panel" id="h-setback">
+            <div class="hint-title">📏 Measuring saddle setback</div>
+            <ol class="hint-steps">
+              <li>Hang a plumb line from the nose of the saddle</li>
+              <li>Measure horizontal distance to bottom bracket centre</li>
+              <li>Most riders sit 20–50 mm behind BB</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Stem length (mm) <button class="hint-btn" onclick="tog('h-stem')" aria-label="How to measure stem length"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></label>
+        <input type="number" id="stemLen" inputmode="numeric" placeholder="e.g. 100 mm">
+        <div class="hint-panel" id="h-stem">
+          <div class="hint-title">📏 Finding stem length</div>
+          <ol class="hint-steps">
+            <li>Look at the side of the stem</li>
+            <li>Length is stamped there (80–110 mm)</li>
+            <li>Or measure steerer clamp centre to bar clamp centre</li>
+          </ol>
+          <div class="hint-tip">💡 Every 10 mm of stem length changes reach by ~8–9 mm.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="btn-back" onclick="goTo(3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <button class="btn-next" onclick="runFit()">⚡ Generate detailed report</button>
+  </div>
+</div>
+
+<!-- ═══ RESULTS ═══ -->
+<div class="section" id="sec5">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-logo"><div class="logo-icon">🚴</div><div><div class="app-name">Bike Fit Expert</div><div class="app-sub">Your detailed fit report</div></div></div>
+      <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:inherit;padding:4px 0" onclick="goTo(1)">↩ Redo</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="resultsContent"></div>
+    <button class="btn-followup" id="deepBtn" onclick="deepDive()">💬 Ask a detailed follow-up question ↗</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+let cur = 0;
+let selPosture = '';
+let uploadedImages = { 1: null };
+let detected = {};
+
+function goTo(n) {
+  document.getElementById('sec' + cur).classList.remove('visible');
+  cur = n;
+  const s = document.getElementById('sec' + n);
+  s.classList.add('visible');
+  window.scrollTo(0, 0);
+}
+function tog(id) { document.getElementById(id).classList.toggle('open'); }
+function v(id) { return (document.getElementById(id) || {}).value || ''; }
+function setV(id, val) {
+  const el = document.getElementById(id);
+  if (!el || val === undefined || val === null || val === '') return;
+  el.value = val;
+  el.classList.add('detected');
+}
+function selPost(p) {
+  selPosture = p;
+  document.querySelectorAll('.posture-card').forEach(c => c.classList.toggle('selected', c.dataset.pos === p));
+}
+function sc(score) { if (score >= 80) return '#1DB87A'; if (score >= 55) return '#F59E0B'; return '#EF4444'; }
+
+/* ── Photo upload ─────────────────────────────────────── */
+function handleFile(evt, slot) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    uploadedImages[slot] = { dataUrl, mediaType: file.type };
+    const wrap = document.getElementById('previewWrap' + slot);
+    const placeholder = document.getElementById('uploadPlaceholder' + slot);
+    const zone = document.getElementById('uploadZone' + slot);
+    placeholder.style.display = 'none';
+    zone.classList.add('has-image');
+    wrap.style.display = 'block';
+    wrap.innerHTML = `
+      <div class="preview-wrap">
+        <img class="preview-img" src="${dataUrl}" alt="Uploaded rider photo">
+        <div class="preview-remove" onclick="removeFile(event,${slot})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+        <div class="preview-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          Photo ready
+        </div>
+      </div>`;
+    document.getElementById('analyzeBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+function removeFile(evt, slot) {
+  evt.stopPropagation();
+  uploadedImages[slot] = null;
+  document.getElementById('previewWrap' + slot).style.display = 'none';
+  document.getElementById('previewWrap' + slot).innerHTML = '';
+  document.getElementById('uploadPlaceholder' + slot).style.display = 'block';
+  document.getElementById('uploadZone' + slot).classList.remove('has-image');
+  document.getElementById('fileInput' + slot).value = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('detectedCard').style.display = 'none';
+}
+
+/* ── Vision analysis ──────────────────────────────────── */
+async function analyzePhoto() {
+  if (!uploadedImages[1]) return;
+  const btn = document.getElementById('analyzeBtn');
+  const state = document.getElementById('analyzingState');
+  const texts = [
+    'Reading posture and bike setup...',
+    'Estimating joint angles...',
+    'Checking saddle and reach...',
+    'Cross-referencing your height...'
+  ];
+  btn.style.display = 'none';
+  state.style.display = 'flex';
+  let ti = 0;
+  const textEl = document.getElementById('analyzingText');
+  const textTimer = setInterval(() => { ti = (ti + 1) % texts.length; textEl.textContent = texts[ti]; }, 1800);
+
+  const heightVal = v('height');
+  const base64 = uploadedImages[1].dataUrl.split(',')[1];
+  const mediaType = uploadedImages[1].mediaType || 'image/jpeg';
+
+  const prompt = `You are an expert professional bike fitter analysing a photo of a cyclist on their bike. The rider's stated height is ${heightVal || 'not provided'} cm — use this as a scale reference for the whole photo.
+
+Study the photo carefully and respond with ONLY a raw JSON object (no markdown fences, no prose before or after) with this exact structure:
+
+{
+  "bike_type": "road" | "mtb" | "gravel" | "tt" | "hybrid" | "track" | "unknown",
+  "handlebar_type": "drop" | "flat" | "riser" | "bullhorn" | "aero" | "unknown",
+  "saddle_type": "flat" | "padded" | "cutout" | "noseless" | "unknown",
+  "posture_category": "aggressive" | "neutral" | "upright" | "cramped" | "stretched" | "unknown",
+  "torso_angle_deg": <number or null, angle of torso from horizontal, e.g. 45>,
+  "elbow_angle_deg": <number or null, degrees of bend at elbow>,
+  "knee_angle_estimate": "cannot determine without pedal position" or a number if crank is visibly near bottom or top of stroke,
+  "back_assessment": "<short phrase e.g. 'flat, neutral back angle' or 'rounded upper back, may indicate reach is too long'>",
+  "saddle_height_visual": "appears too low" | "appears about right" | "appears too high" | "cannot assess",
+  "reach_visual": "appears cramped" | "appears about right" | "appears stretched" | "cannot assess",
+  "estimated_inseam_cm": <number or null — estimate using height as scale and standard human proportions>,
+  "estimated_torso_cm": <number or null>,
+  "estimated_arm_cm": <number or null>,
+  "notable_observations": ["<short observation 1>", "<short observation 2>", "<short observation 3>"],
+  "confidence": "low" | "medium" | "high",
+  "confidence_note": "<one sentence explaining what limits precision, e.g. camera angle, crank position not visible, partial occlusion>"
+}
+
+Be conservative — if something can't be determined from the photo, use null or "unknown" rather than guessing wildly. Base estimated body measurements on standard anthropometric ratios scaled to the given height, cross-checked against what's visible in the photo.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+    const json = await res.json();
+    let text = (json.content || []).map(c => c.text || '').join('').trim();
+    text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = null; }
+
+    clearInterval(textTimer);
+    state.style.display = 'none';
+    btn.style.display = 'flex';
+
+    if (!data) {
+      document.getElementById('confidenceNote').textContent = 'Could not parse the analysis. You can still continue and enter details manually.';
+      document.getElementById('detectedCard').style.display = 'block';
+      document.getElementById('detectedGrid').innerHTML = '';
+      return;
+    }
+
+    detected = data;
+    renderDetected(data);
+    autofillFromDetection(data);
+  } catch (e) {
+    clearInterval(textTimer);
+    state.style.display = 'none';
+    btn.style.display = 'flex';
+    document.getElementById('detectedCard').style.display = 'block';
+    document.getElementById('detectedGrid').innerHTML = '';
+    document.getElementById('confidenceNote').textContent = 'Could not analyse the photo — check your connection and try again, or continue manually.';
+  }
+}
+
+function renderDetected(d) {
+  const grid = document.getElementById('detectedGrid');
+  const rows = [];
+  const label = { road: 'Road bike', mtb: 'Mountain bike', gravel: 'Gravel bike', tt: 'Time trial', hybrid: 'Hybrid', track: 'Track', unknown: 'Unclear' };
+  const barLabel = { drop: 'Drop bar', flat: 'Flat bar', riser: 'Riser bar', bullhorn: 'Bullhorn', aero: 'Aero/TT', unknown: 'Unclear' };
+  const saddleLabel = { flat: 'Flat/performance', padded: 'Padded/comfort', cutout: 'Cut-out', noseless: 'Noseless/ISM', unknown: 'Unclear' };
+  const postLabel = { aggressive: 'Aggressive', neutral: 'Neutral', upright: 'Upright', cramped: 'Cramped', stretched: 'Over-stretched', unknown: 'Unclear' };
+
+  if (d.bike_type) rows.push(['Bike type', label[d.bike_type] || d.bike_type]);
+  if (d.handlebar_type) rows.push(['Handlebar', barLabel[d.handlebar_type] || d.handlebar_type]);
+  if (d.saddle_type) rows.push(['Saddle type', saddleLabel[d.saddle_type] || d.saddle_type]);
+  if (d.posture_category) rows.push(['Posture', postLabel[d.posture_category] || d.posture_category]);
+  if (d.torso_angle_deg) rows.push(['Torso angle', d.torso_angle_deg + '°']);
+  if (d.elbow_angle_deg) rows.push(['Elbow bend', d.elbow_angle_deg + '°']);
+  if (d.saddle_height_visual) rows.push(['Saddle height', d.saddle_height_visual]);
+  if (d.reach_visual) rows.push(['Reach', d.reach_visual]);
+  if (d.estimated_inseam_cm) rows.push(['Est. inseam', d.estimated_inseam_cm + ' cm']);
+  if (d.estimated_torso_cm) rows.push(['Est. torso', d.estimated_torso_cm + ' cm']);
+  if (d.estimated_arm_cm) rows.push(['Est. arm', d.estimated_arm_cm + ' cm']);
+
+  grid.innerHTML = rows.map(r => `<div class="detected-item"><span class="dl">${r[0]}</span><span class="dv">${r[1]}</span></div>`).join('');
+
+  if (d.notable_observations && d.notable_observations.length) {
+    grid.innerHTML += `<div style="margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)">` +
+      d.notable_observations.map(o => `<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:4px">• ${o}</div>`).join('') +
+      `</div>`;
+  }
+
+  document.getElementById('confidenceNote').textContent =
+    `Confidence: ${d.confidence || 'unknown'}. ${d.confidence_note || 'Estimates from photos are approximate — verify manually where possible.'} All fields remain editable in the next steps.`;
+
+  document.getElementById('detectedCard').style.display = 'block';
+}
+
+function autofillFromDetection(d) {
+  if (d.bike_type && d.bike_type !== 'unknown') setV('bikeType', d.bike_type);
+  if (d.handlebar_type && d.handlebar_type !== 'unknown') setV('handlebar', d.handlebar_type);
+  if (d.saddle_type && d.saddle_type !== 'unknown') setV('saddleType', d.saddle_type);
+  if (d.posture_category && d.posture_category !== 'unknown') { selPost(d.posture_category); }
+  if (d.estimated_inseam_cm) setV('inseam', Math.round(d.estimated_inseam_cm));
+  if (d.estimated_torso_cm) setV('torso', Math.round(d.estimated_torso_cm));
+  if (d.estimated_arm_cm) setV('arm', Math.round(d.estimated_arm_cm));
+  const h = v('height');
+  if (h) setV('height2', h);
+
+  document.getElementById('bodyPrefillNote').innerHTML = (d.estimated_inseam_cm || d.estimated_torso_cm || d.estimated_arm_cm)
+    ? '<span class="detected-badge">✓ pre-filled from photo</span> Review the highlighted fields below and correct any that look off.'
+    : '';
+  document.getElementById('bikePrefillNote').innerHTML = (d.bike_type || d.handlebar_type || d.saddleType)
+    ? '<span class="detected-badge">✓ pre-filled from photo</span> Review the highlighted fields below and correct any that look off.'
+    : '';
+  document.getElementById('posturePrefillNote').innerHTML = (d.posture_category && d.posture_category !== 'unknown')
+    ? '<span class="detected-badge">✓ pre-filled from photo</span> Posture pre-selected — tap a different card to override.'
+    : '';
+}
+
+/* ── Run analysis ──────────────────────────────────────── */
+function runFit() {
+  const h = parseFloat(v('height2')) || parseFloat(v('height'));
+  const ins = parseFloat(v('inseam'));
+  if (!h || !ins) { alert('Please make sure height and inseam are filled in (step 2).'); goTo(2); return; }
+  goTo(5);
+  buildResults();
+  callClaudeReport();
+}
+
+/* ── Static detailed results ──────────────────────────── */
+function buildResults() {
+  const ins = parseFloat(v('inseam')) || 82;
+  const torso = parseFloat(v('torso')) || 55;
+  const arm = parseFloat(v('arm')) || 60;
+  const flex = v('flex') || 'average';
+  const pain = v('pain') || 'none';
+  const bt = v('bikeType') || 'road';
+  const posture = selPosture || 'neutral';
+  const curSH = parseFloat(v('saddleH')) || 0;
+  const curSetback = parseFloat(v('saddleSetback')) || 0;
+  const curStem = parseFloat(v('stemLen')) || 0;
+  const exp = v('exp') || '';
+
+  const idealSH = Math.round(ins * 0.883);
+  const shDiff = curSH ? Math.round(curSH - idealSH) : null;
+  const crankRec = ins <= 75 ? 165 : ins <= 82 ? 170 : ins <= 90 ? 172.5 : 175;
+  const stemRec = bt === 'road' ? Math.round(torso * 0.6) : bt === 'tt' ? Math.round(torso * 0.7) : Math.round(torso * 0.5);
+  const setbackRec = flex === 'poor' ? '15–25' : flex === 'excellent' ? '35–50' : '25–40';
+  const dropRec = bt === 'tt' ? '8–12' : exp === 'racer' ? '6–8' : exp === 'beginner' ? '2–4' : '4–6';
+
+  let score = 75;
+  if (posture === 'neutral') score = 82;
+  if (posture === 'aggressive') score = 68;
+  if (posture === 'cramped' || posture === 'stretched') score = 52;
+  if (pain !== 'none') score -= 10;
+  if (flex === 'poor') score -= 8;
+  if (flex === 'excellent') score += 5;
+  if (detected.confidence === 'high') score += 2;
+  score = Math.min(100, Math.max(20, score));
+
+  const scoreCol = sc(score);
+  const circ = 2 * Math.PI * 44;
+  const offset = circ - (score / 100) * circ;
+
+  const painMap = {
+    knee: 'Front knee pain points to saddle too low or too far forward — anterior knee flexion angle exceeds ~145°. Rear/posterior knee pain suggests saddle too high, causing overextension at bottom of stroke. Check cleat float (should allow 3–6° rotational play) and Q-factor width matching hip width.',
+    lower_back: 'Lower back pain during or after rides typically stems from excessive reach relative to hamstring/hip flexor flexibility, or a saddle nose tilted upward. The lumbar spine compensates for insufficient hip hinge, causing fatigue and pain. Raise bars 10–15 mm or shorten stem, and add daily hip flexor and hamstring mobility work.',
+    neck: 'Neck and shoulder pain usually results from sustained cervical extension to keep eyes on the road when the torso angle is too low or reach too long relative to core strength. Raise bar height, shorten stem, or reduce saddle-to-bar drop to 4–6 cm maximum. Neck strengthening exercises help riders adapt to lower positions over time.',
+    hip: 'Hip pain, especially one-sided, often indicates saddle height is too high (causing pelvic rocking side to side to reach the bottom of the pedal stroke) or a leg length discrepancy. Consider a bike fitter check for pelvic tilt and leg length, and verify saddle width matches your sit bone measurement.',
+    wrist: 'Wrist and hand pain (including tingling — a sign of ulnar nerve compression) results from excess weight loading through the hands. Raise bars, shorten stem, and maintain a soft 10–15° elbow bend at all times. Alternate hand positions frequently on longer rides.',
+    foot: 'Foot and ankle pain, including hot-foot or numbness, is most often caused by cleat misalignment, insufficient float, or saddle set too high forcing excessive ankle plantarflexion at the bottom of the stroke. Recheck cleat position — ball of foot over pedal axle — and consider wider platform pedals or insoles.',
+    saddle_sore: 'Saddle sores and numbness usually indicate the saddle nose is tilted up, the saddle is too high causing rocking and friction, or saddle width doesn\'t match sit bone spacing. Level the saddle (0 to -2° nose-down for reach positions), verify sit bone width, and consider a saddle with a pressure-relief channel.'
+  };
+
+  let html = `
+  <div class="score-ring-wrap">
+    <svg width="120" height="120" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="${scoreCol}" stroke-width="8"
+        stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
+        stroke-linecap="round" transform="rotate(-90 50 50)"
+        style="transition:stroke-dashoffset 1s cubic-bezier(0.34,1,0.64,1)"/>
+      <text x="50" y="46" text-anchor="middle" font-size="24" font-weight="700" fill="${scoreCol}" font-family="-apple-system,sans-serif">${score}</text>
+      <text x="50" y="60" text-anchor="middle" font-size="10" fill="#5A6A84" font-family="-apple-system,sans-serif">FIT SCORE</text>
+    </svg>
+    <div class="score-label">out of 100 — ${score >= 80 ? 'Good baseline fit' : score >= 55 ? 'Adjustments recommended' : 'Significant changes needed'}</div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-box-label">Ideal saddle height</div><div class="stat-box-val">${idealSH}<span class="stat-box-unit">mm</span></div></div>
+    <div class="stat-box"><div class="stat-box-label">Rec. crank length</div><div class="stat-box-val">${crankRec}<span class="stat-box-unit">mm</span></div></div>
+  </div>`;
+
+  if (detected.confidence) {
+    html += `<div class="rec-row info" style="margin-bottom:16px">
+      <div class="rec-title">📸 Photo analysis included in this report</div>
+      <div class="rec-note">Detection confidence: ${detected.confidence}. ${detected.confidence_note || ''}</div>
+    </div>`;
+  }
+
+  /* Saddle */
+  html += `<div class="res-section"><div class="res-section-title">🪑 Saddle setup</div>
+    <div class="rec-row"><div class="rec-title">Saddle height — BB centre to saddle top</div><div class="rec-val">${idealSH} mm</div><div class="rec-note">LeMond method: inseam × 0.883. Fine-tune ±5 mm for shoe stack and cleat thickness. Aim for a slight 25–35° knee bend at bottom of stroke.</div></div>`;
+  if (shDiff !== null) {
+    const dir = shDiff > 0 ? 'too high' : 'too low';
+    const cls = Math.abs(shDiff) > 10 ? 'rec-row warn' : 'rec-row';
+    html += `<div class="${cls}"><div class="rec-title">Your current saddle: ${curSH} mm (${dir} by ${Math.abs(shDiff)} mm)</div><div class="rec-note">${Math.abs(shDiff) > 10 ? 'Significant — change gradually, 3–5 mm per week, to let connective tissue adapt.' : 'Minor tweak — adjust and ride 2–3 times before re-evaluating.'}</div></div>`;
+  }
+  html += `<div class="rec-row"><div class="rec-title">Fore-aft position (setback)</div><div class="rec-val">${setbackRec} mm</div><div class="rec-note">Behind the bottom bracket centre. Check with the KOPS method: with cranks horizontal, a plumb line from the front of your kneecap should fall near the pedal axle.</div></div>`;
+  if (curSetback && (curSetback < 15 || curSetback > 55)) {
+    html += `<div class="rec-row warn"><div class="rec-title">Setback check: ${curSetback} mm</div><div class="rec-note">${curSetback < 15 ? 'Very forward position — favours quad-dominant power but increases lower back and neck loading.' : 'Very rearward position — good for hamstring/glute engagement but may reduce power transfer efficiency.'}</div></div>`;
+  }
+  html += `<div class="rec-row"><div class="rec-title">Saddle tilt</div><div class="rec-val">0° to -2°</div><div class="rec-note">Level, or very slightly nose-down for aggressive positions. Nose-up tilt is the leading cause of saddle numbness and perineal pressure.</div></div>`;
+  html += `</div>`;
+
+  /* Reach */
+  html += `<div class="res-section"><div class="res-section-title">↔️ Reach, stem &amp; handlebar</div>
+    <div class="rec-row"><div class="rec-title">Recommended stem length</div><div class="rec-val">${stemRec} mm</div><div class="rec-note">Based on torso length and ${bt} geometry. Every 10 mm changes effective reach by ~8–9 mm.</div></div>
+    <div class="rec-row"><div class="rec-title">Saddle-to-bar drop</div><div class="rec-val">${dropRec} cm</div><div class="rec-note">Vertical distance from saddle top to bar top. Increase gradually as flexibility and core strength improve — never jump straight to an aggressive drop.</div></div>`;
+  if (posture === 'cramped') html += `<div class="rec-row warn"><div class="rec-title">⚠️ Posture: cramped</div><div class="rec-note">Try a longer stem (+10–20 mm) or slide saddle rearward 5–10 mm. Persistent cramped feel after adjustment may mean the frame itself is too small.</div></div>`;
+  if (posture === 'stretched') html += `<div class="rec-row warn"><div class="rec-title">⚠️ Posture: over-stretched</div><div class="rec-note">Shorten stem by 10–20 mm or use a riser stem. Also verify saddle fore-aft isn't set too far rearward, which effectively lengthens reach.</div></div>`;
+  if (curStem && (curStem < stemRec - 20 || curStem > stemRec + 20)) {
+    html += `<div class="rec-row warn"><div class="rec-title">Current stem (${curStem} mm) differs notably from recommendation</div><div class="rec-note">A gap this large from the ${stemRec} mm estimate is worth addressing — but confirm with a static reach/comfort test on the bike before swapping parts.</div></div>`;
+  }
+  html += `</div>`;
+
+  /* Joint angles */
+  html += `<div class="res-section"><div class="res-section-title">🦴 Joint angle targets</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-box-label">Knee at bottom of stroke</div><div class="stat-box-val" style="font-size:18px">25–35°</div></div>
+      <div class="stat-box"><div class="stat-box-label">Hip angle (torso-thigh)</div><div class="stat-box-val" style="font-size:18px">${bt === 'tt' ? '35–45°' : bt === 'road' ? '40–55°' : '55–70°'}</div></div>
+    </div>`;
+  if (detected.elbow_angle_deg) {
+    html += `<div class="rec-row"><div class="rec-title">Detected elbow angle from photo: ${detected.elbow_angle_deg}°</div><div class="rec-note">Target range is 150–165° (slight, soft bend). ${detected.elbow_angle_deg < 150 ? 'Your bend looks deeper than ideal — this can indicate reach is too short or you\'re absorbing too much road vibration through locked-out habits.' : detected.elbow_angle_deg > 170 ? 'Your arms look nearly locked out — this transmits road shock directly to shoulders and neck. Bend elbows more actively.' : 'This is within the target range.'}</div></div>`;
+  } else {
+    html += `<div class="rec-row"><div class="rec-title">Elbow bend</div><div class="rec-val">150–165°</div><div class="rec-note">A soft, unlocked elbow acts as a shock absorber and keeps upper body relaxed. Locked-out arms transmit vibration straight to the shoulders and spine.</div></div>`;
+  }
+  if (detected.torso_angle_deg) {
+    html += `<div class="rec-row"><div class="rec-title">Detected torso angle from photo: ${detected.torso_angle_deg}° from horizontal</div><div class="rec-note">${detected.back_assessment || ''}</div></div>`;
+  }
+  html += `</div>`;
+
+  /* Cleat & foot */
+  html += `<div class="res-section"><div class="res-section-title">👟 Cleat &amp; foot position</div>
+    <div class="rec-row"><div class="rec-title">Fore-aft cleat position</div><div class="rec-note">Centre of the ball of your foot should sit directly above (or up to 5 mm behind) the pedal axle. Moving cleats rearward slightly can reduce calf and Achilles strain on long rides.</div></div>
+    <div class="rec-row"><div class="rec-title">Rotational float</div><div class="rec-note">Use cleats with 3–6° of float unless you have a specific biomechanical reason for a fixed cleat. Float allows your knee to track its natural path and reduces chronic knee strain.</div></div>
+    <div class="rec-row"><div class="rec-title">Q-factor (stance width)</div><div class="rec-note">Should roughly match your natural hip width. Knees that visibly bow outward or knock inward during pedalling indicate a Q-factor mismatch — pedal extenders or narrower cranks can correct this.</div></div>
+    </div>`;
+
+  /* Pain */
+  html += `<div class="res-section"><div class="res-section-title">🏥 Pain &amp; injury deep-dive</div>`;
+  if (pain !== 'none') {
+    html += `<div class="rec-row bad"><div class="rec-title">⚠️ ${pain.replace('_', ' ')} — flagged for attention</div><div class="rec-note">${painMap[pain]}</div></div>`;
+  } else {
+    html += `<div class="rec-row"><div class="rec-title">✅ No pain reported</div><div class="rec-note">Good baseline. Reassess after any single change larger than 5 mm, and monitor as weekly distance increases.</div></div>`;
+  }
+  html += `</div>`;
+
+  /* Priority action plan */
+  const actions = [];
+  if (shDiff !== null && Math.abs(shDiff) > 5) actions.push(`Adjust saddle height ${shDiff > 0 ? 'down' : 'up'} by <b>${Math.abs(shDiff)} mm</b>, in 3–5 mm increments over 1–2 weeks.`);
+  if (posture === 'cramped' || posture === 'stretched') actions.push(`Change stem length toward <b>${stemRec} mm</b> to correct ${posture} riding position.`);
+  if (pain !== 'none') actions.push(`Address <b>${pain.replace('_', ' ')}</b> using the targeted notes above before increasing training volume.`);
+  if (flex === 'poor') actions.push(`Begin a daily <b>10-minute hip flexor and hamstring mobility routine</b> to unlock a more sustainable riding position.`);
+  actions.push(`Re-check fit after <b>2–3 weeks</b> of riding at the new settings — the body needs time to adapt before further changes.`);
+  if (!actions.length) actions.push('Current setup looks reasonable — focus on consistent training rather than further fit changes.');
+
+  html += `<div class="res-section"><div class="res-section-title">🎯 Prioritised action plan</div><div class="card" style="padding:14px 16px">`;
+  actions.slice(0, 5).forEach((a, i) => {
+    const cls = i === 0 ? '' : i === 1 ? 'p2' : 'p3';
+    html += `<div class="action-item"><span class="priority-badge ${cls}">${i + 1}</span><span class="action-text">${a}</span></div>`;
+  });
+  html += `</div></div>`;
+
+  /* AI */
+  html += `<div class="ai-card"><div class="ai-header"><div class="ai-header-dot"></div> Expert AI analysis</div><div class="ai-body" id="aiBody"><span class="dots-anim" style="color:var(--text3)">Writing your full report<span>.</span><span>.</span><span>.</span></span></div></div>`;
+
+  document.getElementById('resultsContent').innerHTML = html;
+}
+
+/* ── Claude text report (deeper, longer) ─────────────────── */
+async function callClaudeReport() {
+  const d = {
+    height: v('height2') || v('height'), weight: v('weight'), inseam: v('inseam'),
+    arm: v('arm'), torso: v('torso'), flex: v('flex'), pain: v('pain'), exp: v('exp'),
+    bikeType: v('bikeType'), model: v('bikeModel'), frame: v('frameSize'),
+    wheel: v('wheelSize'), crank: v('crank'), saddle: v('saddleType'),
+    handlebar: v('handlebar'), posture: selPosture,
+    saddleH: v('saddleH'), saddleSetback: v('saddleSetback'), stem: v('stemLen')
+  };
+  const photoNote = detected.confidence
+    ? `\n\nPHOTO ANALYSIS DATA (confidence: ${detected.confidence}):\nTorso angle: ${detected.torso_angle_deg || 'n/a'}° | Elbow angle: ${detected.elbow_angle_deg || 'n/a'}° | Back assessment: ${detected.back_assessment || 'n/a'} | Saddle height appearance: ${detected.saddle_height_visual || 'n/a'} | Reach appearance: ${detected.reach_visual || 'n/a'} | Observations: ${(detected.notable_observations || []).join('; ')}`
+    : '';
+
+  const prompt = `You are a certified professional bike fitter with 15+ years of experience, including velodrome and time-trial fitting. A cyclist has provided the following data:
+
+BODY MEASUREMENTS:
+Height: ${d.height || 'not given'} cm | Weight: ${d.weight || 'not given'} kg
+Inseam: ${d.inseam || 'not given'} cm | Arm: ${d.arm || 'not given'} cm | Torso: ${d.torso || 'not given'} cm
+Flexibility: ${d.flex || 'not given'} | Experience: ${d.exp || 'not given'} | Pain: ${d.pain || 'none'}
+
+BIKE DETAILS:
+Type: ${d.bikeType || 'not given'} | Model: ${d.model || 'not given'} | Frame: ${d.frame || 'not given'}
+Wheel: ${d.wheel || 'not given'} | Crank: ${d.crank || 'not given'} mm | Saddle: ${d.saddle || 'not given'} | Handlebar: ${d.handlebar || 'not given'}
+
+CURRENT POSTURE & SETUP:
+Posture: ${d.posture || 'not given'} | Saddle height: ${d.saddleH || 'not given'} mm
+Saddle setback: ${d.saddleSetback || 'not given'} mm | Stem: ${d.stem || 'not given'} mm${photoNote}
+
+Write a thorough, in-depth expert bike fit analysis of 450–550 words. Use PLAIN TEXT ONLY — no markdown, no asterisks, no bullet symbols. Use these exact section headers followed by a colon and newline:
+
+FIT ASSESSMENT:
+Give a detailed overall evaluation referencing the specific numbers provided, including how body proportions interact with the bike's geometry.
+
+BIOMECHANICAL ANALYSIS:
+Discuss knee tracking, hip angle, spinal loading, and shoulder/neck positioning based on the data given, including the photo analysis if present.
+
+KEY ADJUSTMENTS:
+List 4–5 prioritised, specific changes with exact mm or degree values.
+
+CLEAT & FOOT POSITION:
+Specific fore-aft, rotational float, and Q-factor advice tailored to this rider.
+
+INJURY RISK & PREVENTION:
+Identify the top 1–2 injury risks given this rider's specific combination of measurements, flexibility, and pain history, and how to mitigate them.
+
+TRAINING & ADAPTATION PLAN:
+A short progressive plan (weeks 1–2, 3–4, 5–6) for adapting to the recommended changes.
+
+WHEN TO SEE A FITTER IN PERSON:
+Specific red flags in this rider's data that would justify an in-person professional fit.
+
+Be direct, specific, and reference the rider's actual numbers throughout rather than giving generic advice.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1600, messages: [{ role: 'user', content: prompt }] })
+    });
+    const json = await res.json();
+    const text = (json.content || []).map(c => c.text || '').join('\n').trim() || 'Analysis unavailable.';
+    document.getElementById('aiBody').textContent = text;
+    document.getElementById('deepBtn').style.display = 'block';
+  } catch (e) {
+    document.getElementById('aiBody').textContent = 'Could not load the AI analysis. Please check your internet connection and try again.';
+  }
+}
+
+function deepDive() {
+  const msg = `I completed a detailed bike fit analysis. I am a ${v('exp') || 'cyclist'} riding a ${v('bikeType') || 'road bike'} (${v('bikeModel') || 'unknown model'}), with a ${selPosture || 'neutral'} posture. Pain: ${v('pain') || 'none'}. Inseam: ${v('inseam') || '?'} cm, height: ${v('height2') || v('height') || '?'} cm, torso: ${v('torso') || '?'} cm, arms: ${v('arm') || '?'} cm. Can you give me a progressive 6-week adaptation plan for dialling in my new bike fit, including stretching, cadence drills, and weekly distance progression?`;
+  window.open('https://claude.ai/new?q=' + encodeURIComponent(msg), '_blank');
+}
+</script>
+</body>
+</html>
